@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMOD → FBX 转换器 · 使用教程</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg2:#161b22; --panel:#161b22; --panel2:#1c2230;
+    --border:#30363d; --border2:#3d444d;
+    --text:#e6edf3; --muted:#8b949e; --dim:#6e7681;
+    --accent:#58a6ff; --accent2:#1f6feb;
+    --green:#3fb950; --red:#f85149; --amber:#d29922;
+    --shadow:0 8px 30px rgba(0,0,0,.4);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    background:radial-gradient(1200px 600px at 15% -10%,#1a2740 0%,transparent 55%),
+               radial-gradient(900px 500px at 100% 0%,#152033 0%,transparent 50%),
+               var(--bg);
+    color:var(--text); line-height:1.75; padding:32px 18px 80px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+
+  /* header */
+  header{text-align:center;margin-bottom:34px}
+  .badge{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);
+    border:1px solid var(--border);background:var(--bg2);padding:6px 14px;border-radius:999px;margin-bottom:18px;flex-wrap:wrap;justify-content:center}
+  .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+  h1{font-size:30px;font-weight:700;letter-spacing:.5px;margin-bottom:10px}
+  h1 .arrow{color:var(--accent);margin:0 6px;font-weight:400}
+  .sub{color:var(--muted);font-size:14px;max-width:640px;margin:0 auto}
+
+  /* toc */
+  .toc{background:linear-gradient(180deg,var(--panel) 0%,#121722 100%);
+    border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:26px}
+  .toc h3{font-size:14px;color:var(--accent);margin-bottom:12px}
+  .toc ol{list-style:none;counter-reset:toc;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px}
+  .toc li{counter-increment:toc;font-size:13px}
+  .toc li::before{content:counter(toc) ".";color:var(--dim);display:inline-block;width:22px}
+  .toc a{color:var(--muted);text-decoration:none}
+  .toc a:hover{color:var(--accent)}
+
+  /* section card */
+  section{background:linear-gradient(180deg,var(--panel) 0%,#121722 100%);
+    border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);
+    margin-bottom:20px;overflow:hidden}
+  .sec-head{padding:15px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;
+    background:rgba(31,111,235,.06)}
+  .sec-head .num{width:26px;height:26px;border-radius:7px;background:var(--accent2);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+  .sec-head h2{font-size:16px;font-weight:600}
+  .sec-body{padding:22px}
+  .sec-body h3{font-size:15px;color:var(--text);margin:22px 0 8px;padding-left:10px;border-left:3px solid var(--accent)}
+  .sec-body h3:first-child{margin-top:0}
+  .sec-body p{font-size:14px;color:var(--muted);margin:8px 0}
+  .sec-body strong{color:var(--text)}
+  code{background:var(--bg2);border:1px solid var(--border);padding:1px 6px;border-radius:5px;color:#a5d6ff;font-size:12.5px;font-family:"SF Mono",Consolas,Monaco,monospace}
+  pre{background:#0a0e14;border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow-x:auto;margin:12px 0;font-size:12.5px;line-height:1.6}
+  pre code{background:none;border:0;color:#c9d1d9;padding:0}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+  th,td{border:1px solid var(--border);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--text);font-weight:600}
+  td{color:var(--muted)}
+
+  /* steps */
+  .steps{counter-reset:step;list-style:none;margin:10px 0}
+  .steps li{position:relative;padding:10px 0 10px 44px;font-size:14px;color:var(--muted);border-bottom:1px dashed var(--border)}
+  .steps li:last-child{border-bottom:0}
+  .steps li::before{content:counter(step);counter-increment:step;position:absolute;left:0;top:10px;
+    width:28px;height:28px;border-radius:8px;background:rgba(88,166,255,.15);border:1px solid var(--accent);
+    color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .steps li b{color:var(--text)}
+
+  /* callout */
+  .note{border-left:3px solid var(--accent);background:rgba(88,166,255,.07);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13.5px;color:var(--muted)}
+  .note.warn{border-left-color:var(--amber);background:rgba(210,153,34,.08)}
+  .note.ok{border-left-color:var(--green);background:rgba(63,185,80,.08)}
+  .note b{color:var(--text)}
+
+  /* faq */
+  details{background:var(--bg2);border:1px solid var(--border);border-radius:9px;margin:9px 0;overflow:hidden}
+  summary{padding:12px 16px;cursor:pointer;font-size:14px;color:var(--text);font-weight:600;list-style:none;display:flex;align-items:center;gap:9px}
+  summary::-webkit-details-marker{display:none}
+  summary::before{content:"＋";color:var(--accent);font-size:16px}
+  details[open] summary::before{content:"－"}
+  details .ans{padding:0 16px 14px 34px;font-size:13.5px;color:var(--muted)}
+
+  /* flow diagram */
+  .flow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:16px 0;font-size:13px}
+  .flow .box{background:var(--panel2);border:1px solid var(--border2);border-radius:9px;padding:10px 14px;color:var(--text);text-align:center}
+  .flow .box.hi{border-color:var(--accent);background:rgba(88,166,255,.12);color:var(--accent)}
+  .flow .arw{color:var(--accent);font-size:18px}
+
+  /* keyboard badge */
+  .kbd{display:inline-block;background:var(--panel2);border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:1px 7px;font-size:12px;color:var(--text);margin:0 2px}
+
+  footer{text-align:center;color:var(--dim);font-size:12.5px;margin-top:30px;line-height:1.9}
+  footer a{color:var(--accent);text-decoration:none}
+
+  @media(max-width:640px){
+    .toc ol{grid-template-columns:1fr}
+    h1{font-size:24px}
+    .flow{flex-direction:column}
+    .flow .arw{transform:rotate(90deg)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="badge"><span class="dot"></span> 单文件 · 纯浏览器本地转换 · 文件不上传 · 离线可用</div>
+    <h1>OMOD<span class="arrow">→</span>FBX 转换器</h1>
+    <p class="sub">使用教程 —— 上传模型、本地转换、下载 FBX、直接 3D 预览，一篇讲清楚。</p>
+  </header>
+
+  <div class="toc">
+    <h3>目录</h3>
+    <ol>
+      <li><a href="#s1">这是什么</a></li>
+      <li><a href="#s2">快速开始（4 步）</a></li>
+      <li><a href="#s3">支持的输入格式</a></li>
+      <li><a href="#s4">典型使用场景</a></li>
+      <li><a href="#s5">选项说明</a></li>
+      <li><a href="#s6">3D 预览操作</a></li>
+      <li><a href="#s7">输出文件说明</a></li>
+      <li><a href="#s8">导入到 3D 软件</a></li>
+      <li><a href="#s9">常见问题 FAQ</a></li>
+      <li><a href="#s10">注意事项与限制</a></li>
+      <li><a href="#s11">技术信息</a></li>
+    </ol>
+  </div>
+
+  <section id="s1">
+    <div class="sec-head"><div class="num">1</div><h2>这是什么</h2></div>
+    <div class="sec-body">
+      <p>这是一个把游戏模型转成通用 3D 格式的 <strong>格式转换器</strong>：</p>
+      <div class="flow">
+        <span class="box">.omod / .obj 模型</span>
+        <span class="arw">→</span>
+        <span class="box hi">本地转换</span>
+        <span class="arw">→</span>
+        <span class="box">.fbx 文件</span>
+        <span class="arw">→</span>
+        <span class="box hi">3D 预览</span>
+      </div>
+      <ul>
+        <li style="color:var(--muted);font-size:14px;margin-left:20px"><strong>输入</strong>：迷你世界的 <code>.omod</code>、<code>.obj</code> 文本模型，或装着它们的 <code>.zip</code> 压缩包。</li>
+        <li style="color:var(--muted);font-size:14px;margin-left:20px"><strong>输出</strong>：<code>.fbx</code> 文件；上传压缩包则返回压缩包（保留目录结构）。</li>
+        <li style="color:var(--muted);font-size:14px;margin-left:20px"><strong>预览</strong>：转换后页面底部直接渲染 3D 模型，可旋转、缩放、平移、全屏。</li>
+      </ul>
+      <div class="note ok">整个工具就是<strong>一个 HTML 文件</strong>（<code>omod2fbx.html</code>），双击即可用浏览器打开，不依赖任何网络或软件。</div>
+    </div>
+  </section>
+
+  <section id="s2">
+    <div class="sec-head"><div class="num">2</div><h2>快速开始（4 步）</h2></div>
+    <div class="sec-body">
+      <ol class="steps">
+        <li><b>打开工具</b>：双击 <code>omod2fbx.html</code>，用默认浏览器打开（推荐 Chrome / Edge）。深色界面从上到下分三块：选择文件 → 转换结果 → 模型预览。</li>
+        <li><b>上传模型</b>：把 <code>.omod</code> / <code>.zip</code> 直接拖进虚线框，或点击虚线框在文件选择器里选中（可按 <span class="kbd">Ctrl</span> / <span class="kbd">Shift</span> 多选）。</li>
+        <li><b>开始转换并下载</b>：点绿色「开始转换」，转换结果区会显示解析日志和下载按钮——单个模型显示 <code>下载 xxx.fbx</code>，压缩包显示 <code>下载压缩包（N 文件）</code>。</li>
+        <li><b>看 3D 预览</b>：转换成功后「模型预览」卡片自动出现，直接渲染生成物，多模型可用顶部标签切换。</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="s3">
+    <div class="sec-head"><div class="num">3</div><h2>支持的输入格式</h2></div>
+    <div class="sec-body">
+      <table>
+        <tr><th>格式</th><th>支持情况</th><th>说明</th></tr>
+        <tr><td><code>.omod</code></td><td>✅ 直接支持</td><td>迷你世界模型，主要输入格式</td></tr>
+        <tr><td><code>.obj</code></td><td>✅ 直接支持</td><td>通用文本模型，作为补充</td></tr>
+        <tr><td><code>.zip</code></td><td>✅ 完整支持</td><td>自动解压、逐个转换、打包返回，保留目录结构</td></tr>
+        <tr><td><code>.7z</code> / <code>.rar</code></td><td>⚠️ 尽力而为</td><td>浏览器无法原生解压，仅扫描内嵌 omod 魔数，不保证可靠</td></tr>
+      </table>
+      <div class="note">上传 <code>.zip</code> 时，工具只转换识别出的模型文件，其他文件（如 <code>readme.txt</code>、贴图）会原样保留在输出压缩包中。</div>
+    </div>
+  </section>
+
+  <section id="s4">
+    <div class="sec-head"><div class="num">4</div><h2>典型使用场景</h2></div>
+    <div class="sec-body">
+      <h3>场景 A：转换单个模型</h3>
+      <p>上传 <code>hero.omod</code> → 点「开始转换」→ 下载 <code>hero.fbx</code> → 底部直接预览。适合快速看效果。</p>
+      <h3>场景 B：批量转换（ZIP 压缩包）</h3>
+      <p>把多个模型打包成 <code>models.zip</code>（可带子目录）上传，转换后下载一个 zip，目录结构保留：</p>
+      <pre><code>输入 models.zip              输出 models_fbx.zip
+├── hero.omod          ──▶   ├── hero.fbx
+├── monster.omod             ├── monster.fbx
+└── readme.txt               └── readme.txt   ← 非模型文件原样保留</code></pre>
+      <h3>场景 C：转完立刻在手机上看</h3>
+      <p>转换后直接在预览卡片用<strong>单指旋转、双指捏合缩放、双指拖动平移</strong>，点右上角 ⛶ 全屏查看，无需打开其他软件。</p>
+    </div>
+  </section>
+
+  <section id="s5">
+    <div class="sec-head"><div class="num">5</div><h2>选项说明</h2></div>
+    <div class="sec-body">
+      <p>上传区下方有两个开关：</p>
+      <table>
+        <tr><th>选项</th><th>作用</th><th>何时勾选</th></tr>
+        <tr><td><strong>同时导出 OBJ + MTL 兜底文件</strong></td><td>额外生成 <code>.obj</code> + <code>.mtl</code></td><td>目标软件导入 FBX 有问题、或只需要纯几何体时</td></tr>
+        <tr><td><strong>导出动画关键帧（实验性）</strong></td><td>尝试写入骨骼动画关键帧</td><td>需要动画时；静态预览可不勾</td></tr>
+      </table>
+      <div class="note">大多数"转个模型看看"的需求，两个都不勾即可。</div>
+    </div>
+  </section>
+
+  <section id="s6">
+    <div class="sec-head"><div class="num">6</div><h2>3D 预览操作</h2></div>
+    <div class="sec-body">
+      <p>转换成功后，预览卡片自动渲染模型。顶部标签切换模型；右上角三个按钮分别是<strong>重置视角 ⟲</strong>、<strong>线框模式 ▦</strong>、<strong>全屏 ⛶</strong>。</p>
+      <table>
+        <tr><th>设备</th><th>旋转</th><th>缩放</th><th>平移</th></tr>
+        <tr><td><strong>电脑（鼠标）</strong></td><td>左键拖拽</td><td>滚轮</td><td>右键 / <span class="kbd">Shift</span> + 拖拽</td></tr>
+        <tr><td><strong>手机 / 平板（触屏）</strong></td><td>单指滑动</td><td>双指捏合</td><td>双指拖动</td></tr>
+      </table>
+      <ul style="color:var(--muted);font-size:13.5px;margin-left:20px">
+        <li>提示文字按设备自动切换（触屏显示手势说明，鼠标显示按键说明）。</li>
+        <li><strong>全屏</strong>：点右上角 ⛶；再点一次或按 <span class="kbd">Esc</span> 退出。iPhone Safari 等不支持原生全屏的浏览器会自动用铺满屏幕的降级方案。</li>
+        <li>若浏览器禁用了 WebGL（隐私模式 / 关闭硬件加速），预览区会给出提示，但<strong>转换与下载功能不受影响</strong>。</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="s7">
+    <div class="sec-head"><div class="num">7</div><h2>输出文件说明</h2></div>
+    <div class="sec-body">
+      <table>
+        <tr><th>文件</th><th>格式</th><th>说明</th></tr>
+        <tr><td><code>.fbx</code></td><td>FBX 7.4 ASCII</td><td><strong>主输出</strong>，可直接导入主流 3D 软件</td></tr>
+        <tr><td><code>.obj</code></td><td>Wavefront OBJ</td><td>兜底几何体（勾选后生成）</td></tr>
+        <tr><td><code>.mtl</code></td><td>Material Template</td><td>OBJ 的材质描述（勾选后生成）</td></tr>
+      </table>
+      <div class="note warn"><strong>关于贴图</strong>：<code>.mtl</code> 只是材质参数描述，原始 <code>.png</code> / <code>.jpg</code> 贴图纹理<strong>不会</strong>嵌入或单独导出。需要贴图请自行准备并把路径对应到材质上。</div>
+    </div>
+  </section>
+
+  <section id="s8">
+    <div class="sec-head"><div class="num">8</div><h2>导入到 3D 软件</h2></div>
+    <div class="sec-body">
+      <h3>Blender</h3>
+      <p><code>文件(File)</code> → <code>导入(Import)</code> → <code>FBX</code> → 选择文件。若显示空白，可勾选"导出 OBJ"改用 OBJ 导入；Blender 默认 Z 轴向上，方向不对时在导入选项调整 <code>Up Axis</code>。</p>
+      <h3>Maya / 3ds Max</h3>
+      <p><code>File</code> → <code>Import</code> → 选择 <code>.fbx</code>，用默认设置即可。骨骼模型可在 Outliner / 层级面板查看骨骼结构。</p>
+      <h3>在线预览网站</h3>
+      <p>直接把 <code>.fbx</code> 拖入支持 FBX 的网站（多基于 Three.js FBXLoader）。本工具的输出已针对该解析器做过兼容性修复，可正常打开。</p>
+    </div>
+  </section>
+
+  <section id="s9">
+    <div class="sec-head"><div class="num">9</div><h2>常见问题 FAQ</h2></div>
+    <div class="sec-body">
+      <details><summary>页面打不开 / 双击没反应？</summary><div class="ans">换用 Chrome / Edge；确认文件是完整的单个 <code>.html</code>，没被下载工具截断。</div></details>
+      <details><summary>转换后导入软件看不到模型？</summary><div class="ans">确认源 <code>.omod</code> 有效；勾选"同时导出 OBJ + MTL"，用 OBJ 导入对比。若 OBJ 正常而 FBX 异常，是目标软件的 FBX 兼容问题。</div></details>
+      <details><summary>模型错乱 / "人不人鬼不鬼"？</summary><div class="ans">这通常是顶点布局解析错误。本工具内置顶点布局自动检测（适配 stride 8 / 10 / 12 等多种 omod 变体），已用多个真实武器模型对照正确 FBX 逐顶点验证做到零误差。如仍遇到错乱，请把该 <code>.omod</code> 反馈给作者。</div></details>
+      <details><summary>动画没有动起来？</summary><div class="ans">动画解析是实验性功能，需勾选"导出动画关键帧"，且取决于源模型是否含可识别动画轨迹；很多 omod 本身只有静态绑定姿态。</div></details>
+      <details><summary>上传 .7z / .rar 没反应？</summary><div class="ans">浏览器无法原生解压这两种格式，工具只能扫描内嵌 omod 魔数（不可靠）。请先用系统压缩工具解压，再用 <code>.zip</code> 重新打包上传。</div></details>
+      <details><summary>文件会不会被上传？</summary><div class="ans"><strong>不会</strong>。所有解析、转换、预览都在浏览器本地内存完成，页面没有任何向服务器发送文件的逻辑，可完全离线使用。</div></details>
+      <details><summary>支持 macOS / 手机吗？</summary><div class="ans">能运行现代浏览器的系统都支持。手机端已针对触摸旋转、双指缩放、全屏做了适配；大批量转换在桌面端体验更好。</div></details>
+    </div>
+  </section>
+
+  <section id="s10">
+    <div class="sec-head"><div class="num">10</div><h2>注意事项与限制</h2></div>
+    <div class="sec-body">
+      <ol style="color:var(--muted);font-size:14px;margin-left:20px">
+        <li><strong>压缩包优先用 ZIP</strong>：<code>.7z</code> / <code>.rar</code> 只做魔数扫描兜底，不可靠。</li>
+        <li><strong>贴图不导出</strong>：仅生成几何体与材质参数，不含图片纹理。</li>
+        <li><strong>动画为实验性</strong>：不保证所有模型的动画都能正确还原。</li>
+        <li><strong>大文件性能</strong>：超大压缩包或超多模型可能让浏览器短暂卡住，建议分批转换。</li>
+        <li><strong>FBX 版本</strong>：输出 FBX 7.4 ASCII；极老的只认 6.x 二进制的软件可能不兼容，可改用 OBJ。</li>
+        <li><strong>WebGL</strong>：3D 预览依赖浏览器 WebGL；预览不可用不影响转换和下载。</li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="s11">
+    <div class="sec-head"><div class="num">11</div><h2>技术信息</h2></div>
+    <div class="sec-body">
+      <ul style="color:var(--muted);font-size:14px;margin-left:20px">
+        <li><strong>形态</strong>：单个 HTML，内嵌纯 JS 转换引擎（由 <code>omod转fbx-v1.1.py</code> 移植）、<code>fflate</code>（ZIP 处理）、<code>Three.js</code>（3D 预览）。</li>
+        <li><strong>解析</strong>：用 <code>DataView</code> 读 omod 二进制——顶点 / UV / 法线 / 索引、材质、骨骼层级、动画轨迹。</li>
+        <li><strong>顶点布局自动检测</strong>：根据「顶点数据块长度 = 顶点数 × stride」反推每种 omod 的 stride（8 / 10 / 12）与起始偏移，UV 的 V 分量自动翻转；已对多个真实模型与正确 FBX 逐顶点验证零误差。</li>
+        <li><strong>输出</strong>：FBX 7.4 ASCII，标准 tab 缩进、多行节点、<code>a:</code> 数组属性、正确的父子连接方向（已针对 Three.js FBXLoader / Blender / Maya 兼容性实测修复）。</li>
+        <li><strong>隐私</strong>：无外部网络依赖，双击即用，文件不上传。</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    本教程对应工具：<code>omod2fbx.html</code><br>
+    转换逻辑移植自 <code>omod转fbx-v1.1.py</code> · 全部计算在浏览器本地完成
+  </footer>
+</div>
+</body>
+</html>
